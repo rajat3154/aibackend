@@ -4,109 +4,189 @@
 <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Realtime AI Test</title>
+      <title>Realtime AI Chat</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+      
       <style>
             :root {
                   --primary: #2563eb;
-                  --primary-hover: #1d4ed8;
-                  --bg-body: #f3f4f6;
+                  --primary-gradient: linear-gradient(135deg, #2563eb, #1d4ed8);
+                  --bg-body: #f0f2f5;
                   --bg-card: #ffffff;
-                  --text-main: #1f2937;
+                  --text-main: #111827;
                   --text-muted: #6b7280;
                   --border: #e5e7eb;
-
-                  /* Badge Colors */
-                  --badge-ai-bg: #ecfdf5;
-                  --badge-ai-text: #059669;
-                  --badge-tool-bg: #eff6ff;
-                  --badge-tool-text: #2563eb;
-                  --badge-user-bg: #f3f4f6;
-                  --badge-user-text: #4b5563;
+                  
+                  /* Bubble Colors */
+                  --bubble-user-bg: #2563eb;
+                  --bubble-user-text: #ffffff;
+                  --bubble-ai-bg: #f3f4f6;
+                  --bubble-ai-text: #1f2937;
+                  --bubble-tool-bg: #fff7ed;
+                  --bubble-tool-border: #ffedd5;
+                  --bubble-tool-text: #9a3412;
             }
 
             body {
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
                   background-color: var(--bg-body);
                   color: var(--text-main);
                   margin: 0;
-                  padding: 20px;
                   display: flex;
                   justify-content: center;
-                  min-height: 100vh;
+                  align-items: center;
+                  height: 100vh;
+                  overflow: hidden;
             }
 
             .container {
                   width: 100%;
-                  max-width: 800px;
+                  max-width: 900px;
+                  height: 95vh;
                   background: var(--bg-card);
-                  border-radius: 12px;
-                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                  border-radius: 16px;
+                  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
                   display: flex;
                   flex-direction: column;
-                  height: 90vh;
                   overflow: hidden;
+                  position: relative;
             }
 
+            /* Header Styling */
             header {
-                  padding: 20px;
+                  padding: 18px 24px;
                   border-bottom: 1px solid var(--border);
+                  background: rgba(255, 255, 255, 0.9);
+                  backdrop-filter: blur(10px);
                   display: flex;
                   align-items: center;
                   justify-content: space-between;
+                  z-index: 10;
             }
 
             h2 {
                   margin: 0;
-                  font-size: 1.25rem;
+                  font-size: 1.1rem;
                   font-weight: 600;
-                  color: var(--text-main);
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
             }
 
-            .status-indicator {
-                  font-size: 0.875rem;
-                  color: var(--text-muted);
+            /* Status Indicator with Pulse */
+            .status-wrapper {
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  font-size: 0.85rem;
+                  font-weight: 500;
             }
 
-            /* The Chat Log Area */
+            .status-dot {
+                  width: 8px;
+                  height: 8px;
+                  border-radius: 50%;
+                  background-color: #d1d5db; /* Gray by default */
+                  transition: background-color 0.3s ease;
+            }
+
+            .status-dot.connected {
+                  background-color: #10b981;
+                  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                  animation: pulse-green 2s infinite;
+            }
+
+            .status-dot.disconnected {
+                  background-color: #ef4444;
+            }
+
+            @keyframes pulse-green {
+                  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+                  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            }
+
+            /* Chat Area Styling */
             #out {
                   flex: 1;
-                  padding: 20px;
+                  padding: 24px;
                   overflow-y: auto;
-                  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 12px;
+                  scroll-behavior: smooth;
+                  background-image: radial-gradient(#f3f4f6 1px, transparent 1px);
+                  background-size: 20px 20px;
+            }
+
+            /* Message Row Layouts */
+            .msg-row {
+                  display: flex;
+                  width: 100%;
+                  opacity: 0;
+                  animation: slideIn 0.3s ease forwards;
+            }
+
+            .msg-row.user { justify-content: flex-end; }
+            .msg-row.ai { justify-content: flex-start; }
+            .msg-row.tool { justify-content: center; }
+            .msg-row.system { justify-content: center; margin: 10px 0; }
+
+            /* Bubble Styling */
+            .bubble {
+                  max-width: 75%;
+                  padding: 12px 16px;
+                  border-radius: 12px;
                   font-size: 0.95rem;
-                  line-height: 1.6;
-                  white-space: pre-wrap;
-                  /* Preserve formatting but allow wrap */
-                  color: var(--text-main);
+                  line-height: 1.5;
+                  position: relative;
+                  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
 
-            /* Styling the specific tags from your JS */
-            .tool,
-            .ai,
-            .system {
-                  display: inline-block;
-                  padding: 2px 8px;
-                  border-radius: 4px;
-                  font-size: 0.8em;
+            .bubble.user {
+                  background: var(--bubble-user-bg);
+                  color: var(--bubble-user-text);
+                  border-bottom-right-radius: 4px;
+            }
+
+            .bubble.ai {
+                  background: var(--bubble-ai-bg);
+                  color: var(--bubble-ai-text);
+                  border-bottom-left-radius: 4px;
+            }
+
+            .bubble.tool {
+                  background: var(--bubble-tool-bg);
+                  color: var(--bubble-tool-text);
+                  border: 1px solid var(--bubble-tool-border);
+                  font-family: 'Menlo', monospace;
+                  font-size: 0.85rem;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+            }
+            
+            .system-msg {
+                  font-size: 0.8rem;
+                  color: var(--text-muted);
+                  background: rgba(243, 244, 246, 0.8);
+                  padding: 4px 12px;
+                  border-radius: 12px;
+            }
+
+            /* Tool Label */
+            .tool-badge {
+                  text-transform: uppercase;
                   font-weight: 700;
-                  font-family: sans-serif;
-                  margin-right: 8px;
-                  vertical-align: middle;
+                  font-size: 0.7rem;
+                  padding: 2px 4px;
+                  border-radius: 4px;
+                  background: rgba(0,0,0,0.05);
             }
 
-            .tool {
-                  background-color: var(--badge-tool-bg);
-                  color: var(--badge-tool-text);
-            }
-
-            .ai {
-                  background-color: var(--badge-ai-bg);
-                  color: var(--badge-ai-text);
-            }
-
-            .system {
-                  background-color: var(--badge-user-bg);
-                  color: var(--badge-user-text);
+            @keyframes slideIn {
+                  from { opacity: 0; transform: translateY(10px); }
+                  to { opacity: 1; transform: translateY(0); }
             }
 
             /* Input Area */
@@ -115,53 +195,54 @@
                   background: var(--bg-card);
                   border-top: 1px solid var(--border);
                   display: flex;
-                  gap: 10px;
+                  gap: 12px;
+                  align-items: center;
             }
 
             input {
                   flex: 1;
-                  padding: 12px 16px;
+                  padding: 14px 20px;
                   border: 1px solid var(--border);
-                  border-radius: 8px;
+                  border-radius: 24px;
                   font-size: 1rem;
                   outline: none;
-                  transition: border-color 0.2s;
+                  background: #f9fafb;
+                  transition: all 0.2s;
+                  font-family: inherit;
             }
 
             input:focus {
+                  background: #fff;
                   border-color: var(--primary);
-                  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+                  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
             }
 
             button {
                   padding: 12px 24px;
-                  background-color: var(--primary);
+                  background: var(--primary-gradient);
                   color: white;
                   border: none;
-                  border-radius: 8px;
+                  border-radius: 24px;
                   font-weight: 600;
-                  font-size: 1rem;
+                  font-size: 0.95rem;
                   cursor: pointer;
-                  transition: background-color 0.2s;
+                  transition: transform 0.1s, box-shadow 0.2s;
+                  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
             }
 
             button:hover {
-                  background-color: var(--primary-hover);
+                  transform: translateY(-1px);
+                  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
+            }
+
+            button:active {
+                  transform: translateY(1px);
             }
 
             /* Custom Scrollbar */
-            #out::-webkit-scrollbar {
-                  width: 8px;
-            }
-
-            #out::-webkit-scrollbar-track {
-                  background: transparent;
-            }
-
-            #out::-webkit-scrollbar-thumb {
-                  background-color: #d1d5db;
-                  border-radius: 4px;
-            }
+            #out::-webkit-scrollbar { width: 6px; }
+            #out::-webkit-scrollbar-track { background: transparent; }
+            #out::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 10px; }
       </style>
 </head>
 
@@ -169,11 +250,20 @@
 
       <div class="container">
             <header>
-                  <h2>Realtime AI Test</h2>
-                  <span id="status" class="status-indicator">Connecting...</span>
+                  <h2>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        AI Assistant
+                  </h2>
+                  <div class="status-wrapper">
+                        <div id="status-dot" class="status-dot"></div>
+                        <span id="status-text">Connecting...</span>
+                  </div>
             </header>
 
-            <div id="out"></div>
+            <div id="out">
+                  </div>
 
             <div class="input-area">
                   <input id="msg" placeholder="Type a message..." autocomplete="off" />
@@ -184,7 +274,8 @@
       <script>
             const msg = document.getElementById("msg");
             const out = document.getElementById("out");
-            const statusLabel = document.getElementById("status");
+            const statusText = document.getElementById("status-text");
+            const statusDot = document.getElementById("status-dot");
 
             let aiBuffer = "";
 
@@ -193,15 +284,33 @@
                   "ws://127.0.0.1:8000/ws/session/123e4567-e89b-12d3-a456-426614174000"
             );
 
-            // Auto-scroll function
             function scrollToBottom() {
                   out.scrollTop = out.scrollHeight;
             }
 
+            function addMessage(type, content) {
+                  const row = document.createElement('div');
+                  row.className = `msg-row ${type}`;
+                  
+                  let innerHTML = '';
+                  if (type === 'tool') {
+                        innerHTML = `<div class="bubble tool"><span class="tool-badge">TOOL</span> ${content}</div>`;
+                  } else if (type === 'system') {
+                         innerHTML = `<span class="system-msg">${content}</span>`;
+                  } else {
+                        innerHTML = `<div class="bubble ${type}">${content}</div>`;
+                  }
+                  
+                  row.innerHTML = innerHTML;
+                  out.appendChild(row);
+                  scrollToBottom();
+            }
+
             ws.onopen = () => {
-                  statusLabel.textContent = "● Connected";
-                  statusLabel.style.color = "#059669"; // Green
-                  out.innerHTML += `<div style="color:#9ca3af; margin-bottom:10px;">System: Connection established</div>`;
+                  statusText.textContent = "Connected";
+                  statusText.style.color = "#10b981";
+                  statusDot.className = "status-dot connected";
+                  addMessage('system', 'Secure connection established');
             };
 
             ws.onmessage = (e) => {
@@ -209,9 +318,8 @@
 
                   // Detect tool output
                   if (data.startsWith("Fetched internal data")) {
-                        out.innerHTML += `<div><span class="tool">TOOL</span>${data}</div><br>`;
+                        addMessage('tool', data);
                         aiBuffer = "";
-                        scrollToBottom();
                         return;
                   }
 
@@ -219,34 +327,34 @@
                   aiBuffer += data;
 
                   // Flush buffer on sentence end
+                  // Note: In a real chat app, you might want to append to the existing bubble instead of creating new ones
+                  // But for this demo, creating bubbles per sentence visualizes the "stream" well.
                   if (data.endsWith(".") || data.endsWith("?") || data.endsWith("!")) {
-                        out.innerHTML += `<div><span class="ai">AI</span>${aiBuffer}</div><br>`;
+                        addMessage('ai', aiBuffer);
                         aiBuffer = "";
-                        scrollToBottom();
                   }
             };
 
             ws.onclose = () => {
                   if (aiBuffer.trim()) {
-                        out.innerHTML += `<div><span class="ai">AI</span>${aiBuffer}</div><br>`;
+                        addMessage('ai', aiBuffer);
                   }
-                  statusLabel.textContent = "○ Disconnected";
-                  statusLabel.style.color = "#ef4444"; // Red
-                  out.innerHTML += `<div style="color:#9ca3af; margin-top:10px;">System: Connection closed</div>`;
-                  scrollToBottom();
+                  statusText.textContent = "Disconnected";
+                  statusText.style.color = "#ef4444";
+                  statusDot.className = "status-dot disconnected";
+                  addMessage('system', 'Connection closed');
             };
 
             function send() {
                   if (!msg.value.trim()) return;
-
-                  // Using 'system' class here to represent 'User' for visual consistency based on your CSS classes
-                  out.innerHTML += `<div><span class="system">YOU</span>${msg.value}</div><br>`;
+                  
+                  // Add User Message bubble
+                  addMessage('user', msg.value);
+                  
                   ws.send(msg.value);
                   msg.value = "";
-                  scrollToBottom();
             }
 
-            // Allow pressing "Enter" to send
             msg.addEventListener("keypress", function (event) {
                   if (event.key === "Enter") {
                         send();

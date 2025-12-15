@@ -15,6 +15,6 @@ async def get_db_pool():
     min_size=1,
     max_size=5,
     ssl="require",
-    statement_cache_size=0   # 👈 REQUIRED FOR SUPABASE POOLER
+    statement_cache_size=0  
 )
 

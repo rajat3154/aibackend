@@ -15,7 +15,7 @@ async def stream_llm(messages):
     groq_messages = [
         {"role": m["role"], "content": m["content"]}
         for m in messages
-        if m["role"] in ("user", "assistant", "system")   # ❗ tool EXCLUDED
+        if m["role"] in ("user", "assistant", "system")  
     ]
 
     completion = client.chat.completions.create(
